@@ -1,9 +1,8 @@
 import React from 'react'
 
-const Note = ({ key,note }) => {
-  console.log("Key", key, "note",note)
+const Note = ({ note }) => {
   return (
-    <li key={key}>{note}</li>
+    <li>{note.content}</li>
   )
 }
 
