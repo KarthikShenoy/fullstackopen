@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import axios from 'axios'
+import phonebook from './services/phonebook'
 
 const App = () => {
   const [persons, setPersons] = useState([])
@@ -8,15 +8,12 @@ const App = () => {
   const [nameSearch, setNameSearch] = useState('')
   const [filteredPeople, setFilteredPeople] = useState(persons)
 
-  
+
   const personHook = () => {
-    axios
-      .get('http://localhost:3001/persons')
-      .then(response => {
-        console.log("Got response ", response)
-        setPersons(response.data)
-        setFilteredPeople(response.data)
-      })
+    phonebook.getAll().then(response => {
+      setPersons(response)
+      setFilteredPeople(response)
+    })
   }
   useEffect(personHook, [])
   const handleNameUpdate = (event) => {
@@ -32,16 +29,27 @@ const App = () => {
       name: newName,
       number: newNumber
     }
-    if (persons.some(person => person.name === newName)) {
-      alert(`${newName} is already added to phonebook`)
+    const existingPerson = persons.filter(person => person.name === newName)
+    if (existingPerson !== undefined && existingPerson.length>0) {
+      if(window.confirm(`${newName} is already added to phonebook replace the old number with a new one?`)){
+        phonebook.update({...newPerson,id:existingPerson[0].id}).then(response => {
+          personHook()
+          setNameSearch('')
+          setNewName('')
+          setNewNumber('')
+        })
+      }
+      
       return;
     }
-    setPersons(persons.concat(newPerson))
-    setNewName('')
-    setNewNumber('')
-    setFilteredPeople((state) => {
-      let tmpState = state.concat(newPerson)
-      return filterPeople(tmpState, nameSearch)
+
+    phonebook.create(newPerson).then(response => {
+      setPersons(persons.concat(response))
+      setNewName('')
+      setNewNumber('')
+      setFilteredPeople((state) => {
+        return filterPeople(state.concat(response), nameSearch)
+      })
     })
   }
   const handleNameSearch = (event) => {
@@ -51,6 +59,16 @@ const App = () => {
     }
     else {
       setFilteredPeople(persons)
+    }
+  }
+  const deleteUser = (id, name) => {
+    if (window.confirm(`Delete ${name}`)) {
+      phonebook.deleteUser(id).then(response => {
+        personHook()
+        setNameSearch('')
+      })
+    } else {
+      console.log(`User chose not to delete ${id}`);
     }
   }
   return (
@@ -71,7 +89,11 @@ const App = () => {
         </div>
       </form>
       <h2>Numbers</h2>
-      {filteredPeople.map(person => <p key={person.name}>{person.name} {person.number}</p>)}
+      {filteredPeople.map(person =>
+        <p key={person.id}>
+          {person.name} {person.number}
+          <button onClick={() => deleteUser(person.id, person.name)}>Delete</button>
+        </p>)}
     </div>
   )
 }
