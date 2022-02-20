@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import phonebook from './services/phonebook'
+import Notification from './Notification'
 
 const App = () => {
   const [persons, setPersons] = useState([])
@@ -7,15 +8,23 @@ const App = () => {
   const [newNumber, setNewNumber] = useState('')
   const [nameSearch, setNameSearch] = useState('')
   const [filteredPeople, setFilteredPeople] = useState(persons)
+  const [message, setMessage] = useState(null)
+  const [isSuccess, setSuccess] = useState(true)
 
-
+  const showMessage =(message, isError)=> {
+    setSuccess(isError)
+    setMessage(message)
+    setTimeout(() => {
+      setMessage(null)
+    }, 5000)
+  }
   const personHook = () => {
     phonebook.getAll().then(response => {
       setPersons(response)
       setFilteredPeople(response)
     })
   }
-  useEffect(personHook, [])
+  
   const handleNameUpdate = (event) => {
     setNewName(event.target.value)
   }
@@ -30,19 +39,18 @@ const App = () => {
       number: newNumber
     }
     const existingPerson = persons.filter(person => person.name === newName)
-    if (existingPerson !== undefined && existingPerson.length>0) {
-      if(window.confirm(`${newName} is already added to phonebook replace the old number with a new one?`)){
-        phonebook.update({...newPerson,id:existingPerson[0].id}).then(response => {
+    if (existingPerson !== undefined && existingPerson.length > 0) {
+      if (window.confirm(`${newName} is already added to phonebook replace the old number with a new one?`)) {
+        phonebook.update({ ...newPerson, id: existingPerson[0].id }).then(response => {
           personHook()
           setNameSearch('')
           setNewName('')
           setNewNumber('')
+          showMessage(`Updated ${newName}`, true)
         })
       }
-      
       return;
     }
-
     phonebook.create(newPerson).then(response => {
       setPersons(persons.concat(response))
       setNewName('')
@@ -50,6 +58,7 @@ const App = () => {
       setFilteredPeople((state) => {
         return filterPeople(state.concat(response), nameSearch)
       })
+      showMessage(`Added ${newName}`, true)
     })
   }
   const handleNameSearch = (event) => {
@@ -66,14 +75,18 @@ const App = () => {
       phonebook.deleteUser(id).then(response => {
         personHook()
         setNameSearch('')
+      }).catch(error => {
+        showMessage(`Information of ${name} has already been removed from server`, false)
+        personHook()
+        setNameSearch('')
       })
-    } else {
-      console.log(`User chose not to delete ${id}`);
     }
   }
+  useEffect(personHook, [])
   return (
     <div>
       <h2>Phonebook</h2>
+      <Notification message={message} isSuccess={isSuccess} />
       <div>
         Filter shown with<input value={nameSearch} onChange={handleNameSearch} />
       </div>
@@ -104,3 +117,5 @@ const filterPeople = (persons, str) => {
   let searchStr = str.toLowerCase()
   return persons.filter(person => person.name.toLowerCase().includes(searchStr))
 }
+
+

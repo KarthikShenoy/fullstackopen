@@ -21,7 +21,7 @@ const App = () => {
   const [notes, setNotes] = useState([])
   const [newNote, setNewNote] = useState('')
   const [showAll, setShowAll] = useState(true)
-  const [errorMessage, setErrorMessage] = useState('some error happened ...')
+  const [errorMessage, setErrorMessage] = useState(null)
 
   const hook = () => {
     noteService
@@ -56,13 +56,10 @@ const App = () => {
   useEffect(hook, [])
 
   const toggleImportance = (id) => {
-    console.log(`importance of  ${id} needs to be toggled`);
     const note = notes.find(n => n.id === id)
     const changedNote = { ...note, important: !note.important }
-    console.log(`Posting ${changedNote.important} `);
     noteService.update(id, changedNote)
       .then(returnedNote => {
-        console.log("Posted data")
         setNotes(notes.map(note => note.id === id ? returnedNote : note))
       }).catch(error => {
         setErrorMessage(
