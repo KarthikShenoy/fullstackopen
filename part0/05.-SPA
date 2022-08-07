@@ -14,18 +14,6 @@ browser->server: HTTP GET https://studies.cs.helsinki.fi/exampleapp/data.json
 server-->browser: [{ content: "HTML is easy", date: "2019-05-23" }, ...]
 
 note over browser:
-browser executes the event handler
-that renders notes to display
-end note
-
-browser->server: HTTP POST https://studies.cs.helsinki.fi/exampleapp/new_note_spa
-
-note over browser:
-browser sends the form data as
-post request body
-end note
-server-->browser:HTTP OK {message:"note created"}
-note over browser:
-browser renders the updated values without 
-any further calls to server
+the JS code renders the recevied data
+On the users browser
 end note

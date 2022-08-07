@@ -21,8 +21,7 @@ end note
 browser->server: HTTP POST https://studies.cs.helsinki.fi/exampleapp/new_note
 
 note over browser:
-browser sends the form data as
-post request body
+browser sends the form data
 end note
 server-->browser:HTTP Redirect 302 to https://studies.cs.helsinki.fi/exampleapp/notes
 browser->server: HTTP GET https://studies.cs.helsinki.fi/exampleapp/notes
@@ -42,7 +41,8 @@ server-->browser: [{ content: "HTML is easy", date: "2019-05-23" }, ...]
 
 note over browser:
 browser executes the event handler
-that renders notes to display
+that renders notes to display along
+with the newly added note
 end note
  
 
