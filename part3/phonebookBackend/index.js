@@ -3,7 +3,7 @@ const app = express()
 app.use(express.json())
 
 const PORT = 3001
-const persons = [
+let persons = [
     { 
       "id": 1,
       "name": "Arto Hellas", 
@@ -50,6 +50,12 @@ app.get('/api/persons/:id', (request, response)=>{
   }else{
     response.status(404).end()
   }
+})
+app.delete('/api/persons/:id', (request, response)=>{
+  console.log("Inside delete")
+  const id = Number(request.params.id)
+  persons = persons.filter(person=> person.id!==id)
+  response.send(204).end()
 })
 app.listen(PORT)
 console.log(`Phonebook backend listening on ${PORT}`)
