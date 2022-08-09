@@ -41,6 +41,15 @@ app.get('/info', (request, response)=>{
   .write(`Phonebook has info for ${numEntries} people\n${date}`)
   response.end()
 })
-
+app.get('/api/persons/:id', (request, response)=>{
+  console.log("Parameterized get")
+  const id = Number(request.params.id)
+  const person = persons.find(person=> person.id===id)
+  if(person){
+    response.json(person)
+  }else{
+    response.status(404).end()
+  }
+})
 app.listen(PORT)
 console.log(`Phonebook backend listening on ${PORT}`)
