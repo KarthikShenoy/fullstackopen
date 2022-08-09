@@ -25,10 +25,21 @@ const persons = [
       "number": "39-23-6423122"
     }
 ]
-
+const getCurrentEntries =() =>{
+  return persons.length;
+}
 app.get('/api/persons', (request, response)=>{
     console.log('Non parameterized get')
     response.json(persons)
+})
+app.get('/info', (request, response)=>{
+  const numEntries = getCurrentEntries()
+  const date = new Date()
+  console.log("In info api")
+  response
+  .status(200)
+  .write(`Phonebook has info for ${numEntries} people\n${date}`)
+  response.end()
 })
 
 app.listen(PORT)
