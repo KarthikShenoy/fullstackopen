@@ -1,5 +1,5 @@
 import axios from 'axios'
-const baseUrl = 'http://localhost:3001/notes'
+const baseUrl = '/api/notes'
 
 const getAll = () => {
     const nonExisting = {
@@ -20,7 +20,7 @@ const update = (id, newObject) => {
         .put(`${baseUrl}/${id}`, newObject)
         .then(response => response.data)
 }
-
+//eslint-disable-next-line 
 export default {
     getAll,
     create,
