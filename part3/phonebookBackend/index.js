@@ -1,6 +1,23 @@
 const express = require('express')
 const app = express()
-app.use(express.json())
+const morgan = require('morgan')
+
+
+const morganTiny = morgan('tiny');
+
+const requestLogger = (request, response, next) =>{
+  console.log(`Method: ${request.method}`);
+  console.log(`Path: ${request.path}`);
+  console.log(`Body: ${request.body}`);
+  console.log('---');
+  next();
+}
+const unknownEndpoint = (request, response)=>{
+  response.status(404).send({error:'unknown endpoint'});
+}
+app.use(express.json());
+app.use(requestLogger);
+app.use(morganTiny);
 
 const PORT = 3001
 let persons = [
@@ -57,7 +74,6 @@ const generateRandomId = () => {
   return Math.floor(Math.random() * 10000);
 }
 app.post('/api/persons', (request, response) => {
-
   const body = request.body
   if (!body.name || !body.number) {
     return response.status(400).json({
@@ -77,5 +93,6 @@ app.post('/api/persons', (request, response) => {
   persons = persons.concat(person)
   response.json(person)
 })
+app.use(unknownEndpoint);
 app.listen(PORT)
 console.log(`Phonebook backend listening on ${PORT}`)
