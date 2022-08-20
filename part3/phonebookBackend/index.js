@@ -2,22 +2,32 @@ const express = require('express')
 const app = express()
 const morgan = require('morgan')
 
+morgan.token('body', (req, res) => {
+  const body = JSON.stringify(req.body);
+  return body!=='{}'?body:'';
+})
+const morgan38 = morgan(function (tokens, req, res) {
+  return [
+    tokens.method(req, res),
+    tokens.url(req, res),
+    tokens.status(req, res),
+    tokens.res(req, res, 'content-length'), '-',
+    tokens['response-time'](req, res), 'ms',
+    tokens.body(req, res)
+  ].join(' ')
+});
 
-const morganTiny = morgan('tiny');
-
-const requestLogger = (request, response, next) =>{
+const requestLogger = (request, response, next) => {
   console.log(`Method: ${request.method}`);
   console.log(`Path: ${request.path}`);
   console.log(`Body: ${request.body}`);
   console.log('---');
   next();
 }
-const unknownEndpoint = (request, response)=>{
-  response.status(404).send({error:'unknown endpoint'});
-}
+
 app.use(express.json());
 app.use(requestLogger);
-app.use(morganTiny);
+app.use(morgan38);
 
 const PORT = 3001
 let persons = [
@@ -80,7 +90,7 @@ app.post('/api/persons', (request, response) => {
       error: 'Both Name and number are mandatory'
     })
   }
-  if(persons.find(val => val.name==body.name)){
+  if (persons.find(val => val.name == body.name)) {
     return response.status(400).json({
       error: 'name must be unique'
     })
@@ -93,6 +103,9 @@ app.post('/api/persons', (request, response) => {
   persons = persons.concat(person)
   response.json(person)
 })
+const unknownEndpoint = (request, response) => {
+  response.status(404).send({ error: 'unknown endpoint' });
+}
 app.use(unknownEndpoint);
 app.listen(PORT)
 console.log(`Phonebook backend listening on ${PORT}`)
