@@ -1,11 +1,14 @@
 const express = require('express')
 const app = express()
 const morgan = require('morgan')
+const cors = require('cors')
+
 
 morgan.token('body', (req, res) => {
   const body = JSON.stringify(req.body);
-  return body!=='{}'?body:'';
+  return body !== '{}' ? body : '';
 })
+
 const morgan38 = morgan(function (tokens, req, res) {
   return [
     tokens.method(req, res),
@@ -28,8 +31,9 @@ const requestLogger = (request, response, next) => {
 app.use(express.json());
 app.use(requestLogger);
 app.use(morgan38);
+app.use(cors());
+app.use(express.static('build'))
 
-const PORT = 3001
 let persons = [
   {
     "id": 1,
@@ -107,5 +111,8 @@ const unknownEndpoint = (request, response) => {
   response.status(404).send({ error: 'unknown endpoint' });
 }
 app.use(unknownEndpoint);
-app.listen(PORT)
-console.log(`Phonebook backend listening on ${PORT}`)
+
+const PORT = process.env.PORT || 3001
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`)
+})
