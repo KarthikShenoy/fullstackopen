@@ -1,8 +1,9 @@
+require('dotenv').config()
 const express = require('express')
 const app = express()
 const morgan = require('morgan')
 const cors = require('cors')
-
+const Person = require('./models/person')
 
 morgan.token('body', (req, res) => {
   const body = JSON.stringify(req.body);
@@ -56,19 +57,18 @@ let persons = [
     "number": "39-23-6423122"
   }
 ]
-const getCurrentEntries = () => {
-  return persons.length;
-}
+
 app.get('/api/persons', (request, response) => {
-  response.json(persons)
+  Person.find({}).then(res => response.json(res))
 })
 app.get('/info', (request, response) => {
-  const numEntries = getCurrentEntries()
-  const date = new Date()
-  response
-    .status(200)
-    .write(`Phonebook has info for ${numEntries} people\n${date}`)
-  response.end()
+  Person.count().then((count) => {
+    const date = new Date()
+    response.json({
+      code: `Phonebook has info for ${count} people\n${date}`
+    })
+  })
+
 })
 app.get('/api/persons/:id', (request, response) => {
   const id = Number(request.params.id)
@@ -84,9 +84,7 @@ app.delete('/api/persons/:id', (request, response) => {
   persons = persons.filter(person => person.id !== id)
   response.sendStatus(204).end()
 })
-const generateRandomId = () => {
-  return Math.floor(Math.random() * 10000);
-}
+
 app.post('/api/persons', (request, response) => {
   const body = request.body
   if (!body.name || !body.number) {
@@ -94,18 +92,26 @@ app.post('/api/persons', (request, response) => {
       error: 'Both Name and number are mandatory'
     })
   }
-  if (persons.find(val => val.name == body.name)) {
-    return response.status(400).json({
-      error: 'name must be unique'
-    })
-  }
-  const person = {
-    id: generateRandomId(),
-    name: body.name,
-    number: body.number
-  }
-  persons = persons.concat(person)
-  response.json(person)
+  Person.find({ name: body.name }).then(result => {
+    if (result.length>0) {
+       return response.status(400).json({
+        error: 'Name must be unique'
+      })
+    }
+  }).then(res => {
+    if (res == null) {
+      const person = new Person({
+        name: body.name,
+        number: body.number
+      })
+      person.save().then(res => {
+        console.log(`Added person ${person}`)
+        response.json(person)
+      })
+    }
+  })
+
+
 })
 const unknownEndpoint = (request, response) => {
   response.status(404).send({ error: 'unknown endpoint' });

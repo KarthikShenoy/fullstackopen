@@ -12,8 +12,8 @@ const phNumber = process.argv[4]
 const url = `mongodb://scott:${password}@localhost/phonebook?retryWrites=true&w=majority`
 
 const personSchema = new mongoose.Schema({
-    personName: String,
-    phoneNumber: String
+    name: String,
+    number: String
 })
 
 const Person = mongoose.model('Person', personSchema)
@@ -23,8 +23,8 @@ mongoose
     .then((result) => {
         if (username !== undefined || phNumber !== undefined) {
             const person = new Person({
-                personName: username,
-                phoneNumber: phNumber
+                name: username,
+                number: phNumber
             })
             console.log(`Added ${username} number ${phNumber} to phonebook`)
             person.save().then(() =>
