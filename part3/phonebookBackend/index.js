@@ -71,18 +71,21 @@ app.get('/info', (request, response) => {
 
 })
 app.get('/api/persons/:id', (request, response) => {
-  const id = Number(request.params.id)
-  const person = persons.find(person => person.id === id)
-  if (person) {
-    response.json(person)
-  } else {
-    response.status(404).end()
-  }
+  Person.findById(request.params.id)
+    .then(result => {
+      if(!result){
+        return response.status(404).end()
+      }
+      return response.json(result)
+    })
 })
 app.delete('/api/persons/:id', (request, response) => {
-  const id = Number(request.params.id)
-  persons = persons.filter(person => person.id !== id)
-  response.sendStatus(204).end()
+  Person.findByIdAndRemove(request.params.id)
+  .then(result => {
+    response.status(204).end()
+  }).catch(error =>{
+    console.log(`Error in when deleting ${request.params.id} is ${error}`)
+  })
 })
 
 app.post('/api/persons', (request, response) => {
