@@ -47,6 +47,9 @@ const App = () => {
           setNewName('')
           setNewNumber('')
           showMessage(`Updated ${newName}`, true)
+        }).catch(error =>{
+          console.log(`Validation error ${error.response.data.error}`);
+          showMessage(error.response.data.error, false)
         })
       }
       return;
@@ -59,6 +62,10 @@ const App = () => {
         return filterPeople(state.concat(response), nameSearch)
       })
       showMessage(`Added ${newName}`, true)
+    })
+    .catch(error =>{
+      console.log(error.response.data.error)
+      showMessage(error.response.data.error, false)
     })
   }
   const handleNameSearch = (event) => {
