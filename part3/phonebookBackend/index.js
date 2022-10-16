@@ -70,7 +70,7 @@ app.get('/info', (request, response) => {
   })
 
 })
-app.get('/api/persons/:id', (request, response) => {
+app.get('/api/persons/:id', (request, response, next) => {
   Person.findById(request.params.id)
     .then(result => {
       if(!result){
@@ -78,16 +78,32 @@ app.get('/api/persons/:id', (request, response) => {
       }
       return response.json(result)
     })
+    .catch(error => next(error))
 })
-app.delete('/api/persons/:id', (request, response) => {
+app.delete('/api/persons/:id', (request, response, next) => {
   Person.findByIdAndRemove(request.params.id)
   .then(result => {
     response.status(204).end()
-  }).catch(error =>{
-    console.log(`Error in when deleting ${request.params.id} is ${error}`)
-  })
+  }).catch(error => next(error))
 })
-
+app.put('/api/persons/:id', (request, response, next) => {
+  const body = request.body
+  if ( !body.name || !body.number){
+    return response.status(400).json({
+      error: 'Both name and number are mandatory'
+    })
+  }
+  const person = {
+    name: request.body.name,
+    number: request.body.number
+  }
+  Person.findByIdAndUpdate(request.params.id, person, { new : true})
+  .then( updatedNote =>{
+    response.json(updatedNote)
+  }
+  ).catch(error => next(error))
+}
+)
 app.post('/api/persons', (request, response) => {
   const body = request.body
   if (!body.name || !body.number) {
@@ -120,7 +136,14 @@ const unknownEndpoint = (request, response) => {
   response.status(404).send({ error: 'unknown endpoint' });
 }
 app.use(unknownEndpoint);
-
+const errorHandler = (error, request, response, next) => {
+  console.error(`From error handler ${error.message}`);
+  if (error.name === 'CastError' || error.name === 'BSONTypeError') {
+    return response.status(400).send({ error: 'malformatted id' })
+  }
+  next(error)
+}
+app.use(errorHandler)
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
